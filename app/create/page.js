@@ -24,11 +24,12 @@ import { getTheme } from "@/lib/design/themes";
  * Flow: Prompt → Outline → Slides → Edit/Refine → Export
  */
 
-// Steps in the creation flow
 const STEPS = {
   GENERATING_OUTLINE: "generating_outline",
   REVIEWING_OUTLINE: "reviewing_outline",
   GENERATING_SLIDES: "generating_slides",
+  GENERATING_DESIGN: "generating_design",
+  GENERATING_IMAGES: "generating_images",
   VIEWING_SLIDES: "viewing_slides",
 };
 
@@ -45,6 +46,7 @@ export default function CreatePage() {
 
   // Theme state
   const [currentTheme, setCurrentTheme] = useState("midnight");
+  const [customTheme, setCustomTheme] = useState(null);
 
   // UI state
   const [sidebarTab, setSidebarTab] = useState("refine"); // 'refine' | 'theme' | 'export'
@@ -53,7 +55,7 @@ export default function CreatePage() {
 
   // Apply theme CSS variables whenever theme changes
   useEffect(() => {
-    const theme = getTheme(currentTheme);
+    const theme = customTheme || getTheme(currentTheme);
     const root = document.documentElement;
 
     root.style.setProperty("--slide-bg", theme.colors.slideBg);
@@ -82,7 +84,7 @@ export default function CreatePage() {
       "--slide-corner-radius",
       theme.decorative.cornerRadius
     );
-  }, [currentTheme]);
+  }, [currentTheme, customTheme]);
 
   // On mount, grab the prompt from URL and start generating
   useEffect(() => {
@@ -151,11 +153,88 @@ export default function CreatePage() {
 
       const data = await res.json();
       setSlides(data.slides);
-      setActiveSlide(0);
-      setStep(STEPS.VIEWING_SLIDES);
+      
+      // Now generate the design using Kimi
+      await generateDesign(data.slides);
     } catch (err) {
       setError(err.message);
       setStep(STEPS.REVIEWING_OUTLINE);
+    }
+  };
+
+  const generateDesign = async (rawSlides) => {
+    setStep(STEPS.GENERATING_DESIGN);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/generate/design", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slides: rawSlides }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to generate design");
+      }
+
+      const data = await res.json();
+      
+      // Apply the theme
+      setCustomTheme(data.design.theme);
+      setCurrentTheme("Custom AI");
+      
+      // Now trigger Flux.1 image generation for the slides
+      await generateImages(rawSlides);
+    } catch (err) {
+      setError("Design generation failed, falling back to default theme. " + err.message);
+      // Fallback but still try to generate images
+      await generateImages(rawSlides);
+    }
+  };
+
+  const generateImages = async (currentSlides) => {
+    // Check if any slides actually need images
+    const needsImages = currentSlides.some(s => s.image_prompt);
+    
+    if (!needsImages) {
+      setSlides(currentSlides);
+      setActiveSlide(0);
+      setStep(STEPS.VIEWING_SLIDES);
+      return;
+    }
+
+    setStep(STEPS.GENERATING_IMAGES);
+    try {
+      const res = await fetch("/api/generate/images", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slides: currentSlides }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const imagesMap = data.images || {};
+        
+        // Merge the generated images back into the slides
+        const updatedSlides = currentSlides.map(slide => {
+          if (imagesMap[slide.slide_number]) {
+            return { ...slide, image: imagesMap[slide.slide_number] };
+          }
+          return slide;
+        });
+        
+        setSlides(updatedSlides);
+      } else {
+        throw new Error("Failed to fetch images");
+      }
+    } catch (err) {
+      console.error("Image generation error:", err);
+      setError("Image generation encountered an error. Some images may be missing.");
+      setSlides(currentSlides);
+    } finally {
+      setActiveSlide(0);
+      setStep(STEPS.VIEWING_SLIDES);
     }
   };
 
@@ -285,7 +364,11 @@ export default function CreatePage() {
   }
 
   // Slide generation loading state
-  if (step === STEPS.GENERATING_SLIDES) {
+  if (
+    step === STEPS.GENERATING_SLIDES ||
+    step === STEPS.GENERATING_DESIGN ||
+    step === STEPS.GENERATING_IMAGES
+  ) {
     return (
       <div className="workspace">
         {/* Navbar */}
@@ -315,12 +398,24 @@ export default function CreatePage() {
 
         <LoadingAnimation
           slideCount={outline?.slides?.length || 6}
-          message="Generating your slides..."
+          message={
+            step === STEPS.GENERATING_DESIGN
+              ? "Kimi is designing your theme & layouts..."
+              : step === STEPS.GENERATING_IMAGES
+              ? "Flux.1 is rendering your images..."
+              : "Gemini is writing your slides..."
+          }
         />
 
         <div className="workspace-sidebar" />
         <div className="workspace-statusbar">
-          <span>Generating...</span>
+          <span>
+            {step === STEPS.GENERATING_DESIGN
+              ? "Designing..."
+              : step === STEPS.GENERATING_IMAGES
+              ? "Rendering Images..."
+              : "Generating..."}
+          </span>
           <span>DeckAI</span>
         </div>
       </div>
@@ -403,6 +498,38 @@ export default function CreatePage() {
         </button>
       </div>
 
+      {error && (
+        <div
+          style={{
+            position: "absolute",
+            top: "60px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 100,
+            padding: "12px 24px",
+            background: "rgba(239, 68, 68, 0.9)",
+            border: "1px solid rgba(239, 68, 68, 1)",
+            borderRadius: "8px",
+            color: "#fff",
+            textAlign: "center",
+            fontSize: "0.875rem",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            display: "flex",
+            alignItems: "center",
+            gap: "12px"
+          }}
+        >
+          {error}
+          <button 
+            className="btn btn-sm" 
+            style={{ background: "rgba(255,255,255,0.2)", color: "white", border: "none" }}
+            onClick={() => setError(null)}
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       {/* Slide renderer (includes thumbnails + main area) */}
       <SlideRenderer
         slides={slides}
@@ -422,7 +549,10 @@ export default function CreatePage() {
         {sidebarTab === "theme" && (
           <ThemePicker
             currentTheme={currentTheme}
-            onThemeChange={setCurrentTheme}
+            onThemeChange={(t) => {
+              setCurrentTheme(t);
+              setCustomTheme(null);
+            }}
           />
         )}
         {sidebarTab === "export" && (

@@ -98,17 +98,20 @@ function TitleHeroLayout({ slide }) {
 
 function TitleWithImageLayout({ slide }) {
   return (
-    <>
-      <div className="slide-image-area">
-        <div className="slide-image-placeholder">
-          <span>🖼️</span>
-        </div>
+    <div className="layout-immersive">
+      <div className="immersive-bg">
+        {slide.image ? (
+          <img src={slide.image} alt="Slide visual" className="immersive-image" />
+        ) : (
+          <div className="immersive-placeholder">🖼️</div>
+        )}
+        <div className="immersive-overlay"></div>
       </div>
-      <div className="slide-text-area">
+      <div className="immersive-content slide-text-area glass-panel">
         <h2 className="slide-title">{slide.title}</h2>
         {slide.subtitle && <p className="slide-subtitle">{slide.subtitle}</p>}
         {slide.bullets && (
-          <div className="slide-bullets" style={{ marginTop: "8px" }}>
+          <div className="slide-bullets" style={{ marginTop: "16px" }}>
             {slide.bullets.map((b, i) => (
               <div className="slide-bullet-item" key={i}>
                 <span className="slide-bullet-dot" />
@@ -118,7 +121,7 @@ function TitleWithImageLayout({ slide }) {
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
 
@@ -145,7 +148,7 @@ function TwoColumnLayout({ slide }) {
       <h2 className="slide-title">{slide.title}</h2>
       <div className="slide-columns">
         {columns.slice(0, 2).map((col, i) => (
-          <div className="slide-column" key={i}>
+          <div className="slide-column glass-panel" style={{ padding: '24px', background: 'rgba(255,255,255,0.03)' }} key={i}>
             <div className="slide-column-heading">{col.heading}</div>
             {(col.items || []).map((item, j) => (
               <div className="slide-column-item" key={j}>
@@ -167,7 +170,7 @@ function ThreeColumnLayout({ slide }) {
       <h2 className="slide-title">{slide.title}</h2>
       <div className="slide-columns">
         {columns.slice(0, 3).map((col, i) => (
-          <div className="slide-column" key={i}>
+          <div className="slide-column glass-panel" style={{ padding: '20px', background: 'rgba(255,255,255,0.03)' }} key={i}>
             <div className="slide-column-heading">{col.heading}</div>
             {(col.items || []).map((item, j) => (
               <div className="slide-column-item" key={j}>
@@ -184,13 +187,16 @@ function ThreeColumnLayout({ slide }) {
 
 function ImageLeftLayout({ slide }) {
   return (
-    <>
-      <div className="slide-image-area">
-        <div className="slide-image-placeholder">
-          <span>🖼️</span>
-        </div>
+    <div className="layout-immersive align-right">
+      <div className="immersive-bg">
+        {slide.image ? (
+          <img src={slide.image} alt="Slide visual" className="immersive-image" />
+        ) : (
+          <div className="immersive-placeholder">🖼️</div>
+        )}
+        <div className="immersive-overlay"></div>
       </div>
-      <div className="slide-text-area">
+      <div className="immersive-content slide-text-area glass-panel">
         <h2 className="slide-title">{slide.title}</h2>
         <div className="slide-bullets">
           {(slide.bullets || []).map((b, i) => (
@@ -201,19 +207,22 @@ function ImageLeftLayout({ slide }) {
           ))}
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
 function ImageRightLayout({ slide }) {
   return (
-    <>
-      <div className="slide-image-area">
-        <div className="slide-image-placeholder">
-          <span>🖼️</span>
-        </div>
+    <div className="layout-immersive align-left">
+      <div className="immersive-bg">
+        {slide.image ? (
+          <img src={slide.image} alt="Slide visual" className="immersive-image" />
+        ) : (
+          <div className="immersive-placeholder">🖼️</div>
+        )}
+        <div className="immersive-overlay"></div>
       </div>
-      <div className="slide-text-area">
+      <div className="immersive-content slide-text-area glass-panel">
         <h2 className="slide-title">{slide.title}</h2>
         <div className="slide-bullets">
           {(slide.bullets || []).map((b, i) => (
@@ -224,7 +233,7 @@ function ImageRightLayout({ slide }) {
           ))}
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -322,39 +331,18 @@ function getLayoutClass(layoutType) {
 }
 
 function getDecorativeElements(layoutType, index) {
+  // If immersive layout, skip standard decors because the image takes over
+  if (['IMAGE_LEFT', 'IMAGE_RIGHT', 'TITLE_WITH_IMAGE'].includes(layoutType)) {
+    return null;
+  }
+
   // Vary decorations based on slide position for visual interest
   const pattern = index % 4;
 
-  switch (pattern) {
-    case 0:
-      return (
-        <>
-          <div className="slide-shape-accent-bar" />
-          <div className="slide-shape-corner-circle" />
-        </>
-      );
-    case 1:
-      return (
-        <>
-          <div className="slide-shape-top-bar" />
-          <div className="slide-shape-dots" />
-        </>
-      );
-    case 2:
-      return (
-        <>
-          <div className="slide-shape-bottom-line" />
-          <div className="slide-shape-corner-circle" />
-        </>
-      );
-    case 3:
-      return (
-        <>
-          <div className="slide-shape-accent-bar" />
-          <div className="slide-shape-dots" />
-        </>
-      );
-    default:
-      return null;
-  }
+  return (
+    <div className="slide-background-fx">
+      <div className={`slide-orb orb-${pattern + 1}`}></div>
+      <div className={`slide-orb orb-${(pattern + 2) % 4 + 1}`}></div>
+    </div>
+  );
 }
