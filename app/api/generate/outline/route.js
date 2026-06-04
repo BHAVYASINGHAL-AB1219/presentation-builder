@@ -3,7 +3,7 @@
  * Accepts a user prompt and generates a structured presentation outline.
  */
 
-import { generateStructured } from "@/lib/ai/gemini";
+import { generateStructured } from "@/lib/ai/openrouter";
 import { outlineSchema } from "@/lib/ai/schemas";
 import {
   OUTLINE_SYSTEM_PROMPT,
