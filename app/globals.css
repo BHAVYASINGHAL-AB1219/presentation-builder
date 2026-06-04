@@ -1502,3 +1502,158 @@ input, textarea {
     height: 56.25vw; /* 16:9 */
   }
 }
+
+/* ============================================================
+   PREMIUM DYNAMIC AESTHETICS (Glassmorphism & Immersive Layouts)
+   ============================================================ */
+
+/* --- Glowing Background Orbs --- */
+.slide-background-fx {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.slide-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.5;
+  animation: floatOrb 20s infinite alternate ease-in-out;
+}
+
+.orb-1 {
+  width: 60%;
+  height: 60%;
+  background: var(--slide-accent-light);
+  top: -10%;
+  left: -10%;
+  animation-delay: 0s;
+}
+
+.orb-2 {
+  width: 50%;
+  height: 50%;
+  background: var(--slide-accent);
+  bottom: -20%;
+  right: -10%;
+  animation-delay: -5s;
+}
+
+.orb-3 {
+  width: 45%;
+  height: 45%;
+  background: var(--slide-accent-light);
+  top: 20%;
+  right: -20%;
+  animation-delay: -10s;
+}
+
+.orb-4 {
+  width: 70%;
+  height: 70%;
+  background: var(--slide-accent);
+  bottom: -30%;
+  left: -20%;
+  animation-delay: -15s;
+}
+
+@keyframes floatOrb {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(10%, 10%) scale(1.1); }
+  100% { transform: translate(-5%, 15%) scale(0.9); }
+}
+
+/* --- Immersive Full-Bleed Layouts --- */
+.layout-immersive {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.layout-immersive.align-left {
+  justify-content: flex-start;
+}
+
+.layout-immersive.align-right {
+  justify-content: flex-end;
+}
+
+.immersive-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.immersive-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.05); /* Slight zoom for premium feel */
+}
+
+.immersive-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--slide-bg-alt), var(--slide-bg));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 4rem;
+  opacity: 0.3;
+}
+
+/* Overlay gradient to ensure text readability */
+.immersive-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to right, var(--slide-bg) 0%, transparent 100%);
+  opacity: 0.8;
+}
+
+.layout-immersive.align-right .immersive-overlay {
+  background: linear-gradient(to left, var(--slide-bg) 0%, transparent 100%);
+}
+
+.immersive-content {
+  position: relative;
+  z-index: 1;
+  width: 55%;
+  height: 85%;
+  margin: 0 5%;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* --- Glassmorphism Overrides --- */
+.slide-card .glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--slide-corner-radius);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+.slide-icon-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}

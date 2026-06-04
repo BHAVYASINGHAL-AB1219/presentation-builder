@@ -3,7 +3,7 @@
  * Handles conversational refinement of an existing presentation.
  */
 
-import { generateStructured } from "@/lib/ai/gemini";
+import { generateStructured } from "@/lib/ai/fireworks";
 import { refineSchema } from "@/lib/ai/schemas";
 import {
   REFINE_SYSTEM_PROMPT,
