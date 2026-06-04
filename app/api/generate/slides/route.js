@@ -3,7 +3,7 @@
  * Takes an approved outline and generates full slide content.
  */
 
-import { generateStructured } from "@/lib/ai/openrouter";
+import { generateStructured } from "@/lib/ai/fireworks";
 import { slidesSchema } from "@/lib/ai/schemas";
 import {
   SLIDES_SYSTEM_PROMPT,
