@@ -4,10 +4,12 @@
  */
 
 import { generateStructured } from "@/lib/ai/fireworks";
-import { slidesSchema } from "@/lib/ai/schemas";
+import { slidesSchema, verifySchema } from "@/lib/ai/schemas";
 import {
   SLIDES_SYSTEM_PROMPT,
   buildSlidesPrompt,
+  VERIFY_SYSTEM_PROMPT,
+  buildVerifyPrompt,
 } from "@/lib/ai/prompts";
 
 export async function POST(request) {
@@ -22,15 +24,32 @@ export async function POST(request) {
       );
     }
 
+    // Pass 1: Generate drafted slides
     const userPrompt = buildSlidesPrompt(outline);
-
-    const result = await generateStructured(
+    console.log("Drafting slides...");
+    const draftResult = await generateStructured(
       SLIDES_SYSTEM_PROMPT,
       userPrompt,
       slidesSchema
     );
 
-    return Response.json({ success: true, slides: result.slides });
+    // Pass 2: Auditor pass
+    console.log("Auditing drafted slides for layout fit...");
+    const verifyUserPrompt = buildVerifyPrompt(draftResult.slides);
+    const verifyResult = await generateStructured(
+      VERIFY_SYSTEM_PROMPT,
+      verifyUserPrompt,
+      verifySchema
+    );
+
+    console.log("Auditor Analysis:", verifyResult.analysis);
+    if (verifyResult.requires_changes) {
+      console.log("Auditor applied fixes to prevent overflow!");
+    } else {
+      console.log("Auditor approved slides as-is.");
+    }
+
+    return Response.json({ success: true, slides: verifyResult.slides });
   } catch (error) {
     console.error("Slide generation failed:", error);
     return Response.json(

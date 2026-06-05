@@ -369,6 +369,7 @@ input, textarea {
   box-shadow: var(--shadow-lg);
   font-family: var(--slide-font-body);
   transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  container-type: inline-size;
 }
 
 .slide-card:hover {
@@ -435,9 +436,10 @@ input, textarea {
   z-index: 1;
   width: 100%;
   height: 100%;
-  padding: 8%;
+  padding: 6%;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 /* --- Layout: Title Hero --- */
@@ -516,8 +518,9 @@ input, textarea {
 .layout-two-column .slide-columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--sp-xl);
+  gap: var(--sp-lg);
   flex: 1;
+  min-height: 0;
 }
 
 .slide-column {
@@ -560,6 +563,7 @@ input, textarea {
   grid-template-columns: 1fr 1fr 1fr;
   gap: var(--sp-xl);
   flex: 1;
+  min-height: 0;
 }
 
 /* --- Layout: Image Left / Image Right --- */
@@ -643,6 +647,11 @@ input, textarea {
   line-height: 1.4;
   margin: var(--sp-lg) 0;
   max-width: 80%;
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .slide-quote-author {
@@ -753,8 +762,8 @@ input, textarea {
 
 .slide-icon-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--sp-lg);
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--sp-md);
   flex: 1;
 }
 
@@ -762,10 +771,10 @@ input, textarea {
   background: var(--slide-card-bg);
   border: 1px solid var(--slide-border);
   border-radius: var(--radius-lg);
-  padding: var(--sp-lg);
+  padding: var(--sp-md);
   display: flex;
   flex-direction: column;
-  gap: var(--sp-sm);
+  gap: var(--sp-xs);
 }
 
 .slide-icon-emoji {
@@ -783,6 +792,11 @@ input, textarea {
   font-size: clamp(0.6rem, 1vw, 0.85rem);
   color: var(--slide-body);
   line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* --- Layout: Closing --- */

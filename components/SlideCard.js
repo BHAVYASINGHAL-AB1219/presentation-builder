@@ -148,7 +148,7 @@ function TwoColumnLayout({ slide }) {
       <h2 className="slide-title">{slide.title}</h2>
       <div className="slide-columns">
         {columns.slice(0, 2).map((col, i) => (
-          <div className="slide-column glass-panel" style={{ padding: '24px', background: 'rgba(255,255,255,0.03)' }} key={i}>
+          <div className="slide-column glass-panel" style={{ padding: '16px', background: 'rgba(255,255,255,0.03)' }} key={i}>
             <div className="slide-column-heading">{col.heading}</div>
             {(col.items || []).map((item, j) => (
               <div className="slide-column-item" key={j}>
@@ -170,7 +170,7 @@ function ThreeColumnLayout({ slide }) {
       <h2 className="slide-title">{slide.title}</h2>
       <div className="slide-columns">
         {columns.slice(0, 3).map((col, i) => (
-          <div className="slide-column glass-panel" style={{ padding: '20px', background: 'rgba(255,255,255,0.03)' }} key={i}>
+          <div className="slide-column glass-panel" style={{ padding: '12px', background: 'rgba(255,255,255,0.03)' }} key={i}>
             <div className="slide-column-heading">{col.heading}</div>
             {(col.items || []).map((item, j) => (
               <div className="slide-column-item" key={j}>
