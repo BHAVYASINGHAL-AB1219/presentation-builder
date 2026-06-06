@@ -9,6 +9,7 @@ import {
   MessageSquare,
   ArrowLeft,
   Layers,
+  History,
 } from "lucide-react";
 import SlideRenderer from "@/components/SlideRenderer";
 import LoadingAnimation from "@/components/LoadingAnimation";
@@ -17,6 +18,7 @@ import OutlineEditor from "@/components/OutlineEditor";
 import ThemePicker from "@/components/ThemePicker";
 import RefineChat from "@/components/RefineChat";
 import ExportPanel from "@/components/ExportPanel";
+import VersionHistoryPanel from "@/components/VersionHistoryPanel";
 import { getTheme } from "@/lib/design/themes";
 
 /**
@@ -43,6 +45,10 @@ export default function CreatePage() {
   const [slides, setSlides] = useState([]);
   const [presentationTitle, setPresentationTitle] = useState("Untitled");
   const [activeSlide, setActiveSlide] = useState(0);
+
+  // Version History state
+  const [history, setHistory] = useState([]);
+  const [activeVersionId, setActiveVersionId] = useState(null);
 
   // Theme state
   const [currentTheme, setCurrentTheme] = useState("midnight");
@@ -201,6 +207,17 @@ export default function CreatePage() {
       setSlides(currentSlides);
       setActiveSlide(0);
       setStep(STEPS.VIEWING_SLIDES);
+      
+      // Save initial version
+      const vId = Date.now();
+      setHistory([{
+        id: vId,
+        timestamp: new Date().toISOString(),
+        description: "Initial AI Generation",
+        slides: currentSlides,
+        theme: customTheme
+      }]);
+      setActiveVersionId(vId);
       return;
     }
 
@@ -225,6 +242,17 @@ export default function CreatePage() {
         });
         
         setSlides(updatedSlides);
+        
+        // Save initial version
+        const vId = Date.now();
+        setHistory([{
+          id: vId,
+          timestamp: new Date().toISOString(),
+          description: "Initial AI Generation",
+          slides: updatedSlides,
+          theme: customTheme
+        }]);
+        setActiveVersionId(vId);
       } else {
         throw new Error("Failed to fetch images");
       }
@@ -232,6 +260,17 @@ export default function CreatePage() {
       console.error("Image generation error:", err);
       setError("Image generation encountered an error. Some images may be missing.");
       setSlides(currentSlides);
+      
+      // Save initial version even on image failure
+      const vId = Date.now();
+      setHistory([{
+        id: vId,
+        timestamp: new Date().toISOString(),
+        description: "Initial AI Generation",
+        slides: currentSlides,
+        theme: customTheme
+      }]);
+      setActiveVersionId(vId);
     } finally {
       setActiveSlide(0);
       setStep(STEPS.VIEWING_SLIDES);
@@ -276,9 +315,27 @@ export default function CreatePage() {
     }
   };
 
-  const handleSlidesUpdate = useCallback((newSlides) => {
+  const handleSlidesUpdate = useCallback((newSlides, description = "Manual Edit") => {
     setSlides(newSlides);
-  }, []);
+    
+    // Save version history
+    const vId = Date.now();
+    setHistory(prev => [{
+      id: vId,
+      timestamp: new Date().toISOString(),
+      description,
+      slides: newSlides,
+      theme: customTheme
+    }, ...prev]);
+    setActiveVersionId(vId);
+  }, [customTheme]);
+
+  const handleRestoreVersion = useCallback((version) => {
+    setSlides(version.slides);
+    setCustomTheme(version.theme);
+    setCurrentTheme(version.theme ? "Custom AI" : currentTheme);
+    setActiveVersionId(version.id);
+  }, [currentTheme]);
 
   // --- Render ---
 
@@ -470,6 +527,13 @@ export default function CreatePage() {
             Theme
           </button>
           <button
+            className={`sidebar-tab ${sidebarTab === "history" ? "active" : ""}`}
+            onClick={() => setSidebarTab("history")}
+            title="Version History"
+          >
+            <History size={18} />
+          </button>
+          <button
             className={`btn btn-sm ${
               sidebarTab === "export" ? "btn-primary" : "btn-ghost"
             }`}
@@ -543,7 +607,7 @@ export default function CreatePage() {
           <RefineChat
             slides={slides}
             onSlidesUpdate={handleSlidesUpdate}
-            isVisible={true}
+            isVisible={sidebarTab === "refine"}
           />
         )}
         {sidebarTab === "theme" && (
@@ -553,6 +617,14 @@ export default function CreatePage() {
               setCurrentTheme(t);
               setCustomTheme(null);
             }}
+            isVisible={sidebarTab === "theme"}
+          />
+        )}
+        {sidebarTab === "history" && (
+          <VersionHistoryPanel
+            history={history}
+            activeVersionId={activeVersionId}
+            onRestore={handleRestoreVersion}
           />
         )}
         {sidebarTab === "export" && (

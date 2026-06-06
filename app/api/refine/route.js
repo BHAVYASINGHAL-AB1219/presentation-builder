@@ -33,8 +33,14 @@ export async function POST(request) {
       );
     }
 
+    // Strip massive base64 image strings before sending to LLM to prevent context overflow
+    const cleanSlides = slides.map(slide => {
+      const { image, ...rest } = slide;
+      return rest;
+    });
+
     const userPrompt = buildRefinePrompt(
-      slides,
+      cleanSlides,
       instruction.trim(),
       chatHistory || []
     );
@@ -45,11 +51,21 @@ export async function POST(request) {
       refineSchema
     );
 
+    // Reattach images from the original slides to prevent them from disappearing
+    // We map by slide_number as a best-effort approach.
+    const finalSlides = result.slides.map(newSlide => {
+      const originalSlide = slides.find(s => s.slide_number === newSlide.slide_number);
+      if (originalSlide && originalSlide.image) {
+        return { ...newSlide, image: originalSlide.image };
+      }
+      return newSlide;
+    });
+
     return Response.json({
       success: true,
       action: result.action,
       message: result.message,
-      slides: result.slides,
+      slides: finalSlides,
     });
   } catch (error) {
     console.error("Refinement failed:", error);

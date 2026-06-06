@@ -57,7 +57,7 @@ export default function RefineChat({
       ]);
 
       if (data.slides) {
-        onSlidesUpdate(data.slides);
+        onSlidesUpdate(data.slides, `Refined: "${userMessage}"`);
       }
     } catch (err) {
       setMessages((prev) => [
